@@ -1,1 +1,2 @@
-# lfd-term-project
+# Learning From Data
+## Term Project
