@@ -31,8 +31,12 @@ for train, test in kf.split(train_features):
 
     regressor.fit(x_train, y_train)
 
-    print("Train error for {}.fold : {}".format(i, mse(y_train, regressor.predict(x_train))))
-    print("Test  error for {}.fold : {}".format(i, mse(y_test, regressor.predict(x_test))))
+    print("{}. Fold : ".format(i))
+    print("Train error : {}".format(mse(y_train, regressor.predict(x_train))))
+    print("Train regressor Score : ", regressor.score(x_train, y_train))
+    print()
+    print("Test  error : {}".format(mse(y_test, regressor.predict(x_test))))
+    print("Test  regressor Score : ", regressor.score(x_test, y_test))
     print("------------------------------------------------")
 
     i += 1
