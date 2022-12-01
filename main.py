@@ -16,7 +16,6 @@ train_targets = train_targets.values
 
 
 regressor = LinearRegression()
-losses = []
 
 r.seed(1)
 kf = KFold(n_splits=5, shuffle=True)
@@ -26,8 +25,8 @@ for train, test in kf.split(train_features):
     x_train = train_features[train]
     x_test = train_features[test]
 
-    y_train = train_targets[train]
-    y_test = train_targets[test]
+    y_train = train_targets[train].flatten()
+    y_test = train_targets[test].flatten()
 
     regressor.fit(x_train, y_train)
 
