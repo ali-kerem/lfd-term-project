@@ -17,7 +17,7 @@ if __name__ == "__main__":
     test_features = helpers.labelEncode(test_features)
     train_targets = train_targets.values
 
-    kf = KFold(n_splits=5)
+    kf = KFold(n_splits=5, shuffle=True)
     best_regressor = None
     best_regressor_error = 999999999
     regressor = LinearRegression() # For loop
