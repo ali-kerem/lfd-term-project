@@ -2,8 +2,11 @@ from sklearn.preprocessing import LabelEncoder
 from sklearn.compose import ColumnTransformer
 from sklearn.preprocessing import OneHotEncoder
 from sklearn.metrics import mean_squared_error as mse
+from sklearn.preprocessing import normalize
 import numpy as np
 import pandas as pd
+
+DIVIDE_TARGET_BY = 1000
 
 
 def labelEncode(data):
@@ -16,23 +19,42 @@ def labelEncode(data):
 
     return data
 
+def prepareFeatures(fileName):
+    features = pd.read_csv(fileName)
+    features = labelEncode(features)
 
-def createSubmission(regressor):
-    test_features = pd.read_csv("test_features.csv")
-    test_features = labelEncode(test_features)
+    return features
 
-    with open('submission.csv', 'w') as outFile:
+def prepareTargets(fileName):
+    targets = pd.read_csv(fileName)
+    targets = targets.values
+    targets = targets.flatten()
+    targets = targets / DIVIDE_TARGET_BY
+
+    return targets
+
+def createSubmission(regressor, test_features, submissionFile):
+    with open(submissionFile, 'w') as outFile:
         predictions = regressor.predict(test_features)
         outFile.write("ID,predicted\n")
         for i in range(len(predictions)):
-            outFile.write(str(i) + ',' + str(predictions[i]) + "\n")
+            outFile.write(str(i) + ',' + str(predictions[i] * DIVIDE_TARGET_BY) + "\n")
 
 
-def testScore(regressor):
-    test_features = pd.read_csv("test_features.csv")
-    test_features = labelEncode(test_features)
+def printPerformance(regressor, features, targets):
+    error = mse(targets, regressor.predict(features)) * (DIVIDE_TARGET_BY ** 2)
+    print("Error : {}".format(error))
+    print("Score : {}".format(regressor.score(features, targets)))
+    return error
 
-    test_targets = pd.read_csv("test_targets.csv")
-    test_targets = test_targets.values
-
-    return mse(test_targets, regressor.predict(test_features))
+"""
+# Normalize the features
+def prepareFeatures(fileName):
+    features = pd.read_csv(fileName)
+    features = labelEncode(features)
+    normalized_age = normalize(features[:, [4]], axis=0)
+    normalized_bmi_children = normalize(features[:, [6,7]], axis=0)
+    features = np.concatenate((features[:,[0,1,2,3]], normalized_age, features[:,[5]], normalized_bmi_children, features[:, [8]]), axis=1)
+    #features = normalize(features)
+    return features
+"""
