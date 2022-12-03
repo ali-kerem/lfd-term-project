@@ -5,10 +5,10 @@ import random as r
 import helpers
 
 if __name__ == "__main__":
-    train_features = helpers.prepareFeatures("train_features.csv")
+    train_features = helpers.prepareFeatures("train_features.csv", normalize=True)
     train_targets = helpers.prepareTargets("train_targets.csv")
 
-    test_features = helpers.prepareFeatures("test_features.csv")
+    test_features = helpers.prepareFeatures("test_features.csv", normalize=True)
     test_targets = helpers.prepareTargets("test_targets.csv")
 
     r.seed(1)

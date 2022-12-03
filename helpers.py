@@ -2,7 +2,6 @@ from sklearn.preprocessing import LabelEncoder
 from sklearn.compose import ColumnTransformer
 from sklearn.preprocessing import OneHotEncoder
 from sklearn.metrics import mean_squared_error as mse
-from sklearn.preprocessing import normalize
 import numpy as np
 import pandas as pd
 
@@ -19,9 +18,18 @@ def labelEncode(data):
 
     return data
 
-def prepareFeatures(fileName):
+def normalizeFeatures(features):
+    features[:,4] = (features[:,4] - features[:,4].mean()) / features[:,4].std() # Normalize age
+    features[:,6] = (features[:,6] - features[:,6].mean()) / features[:,6].std() # Normalize bmi
+    features[:,7] = (features[:,7] - features[:,7].mean()) / features[:,7].std() # Normalize number of children
+    return features
+
+def prepareFeatures(fileName, normalize):
     features = pd.read_csv(fileName)
     features = labelEncode(features)
+
+    if normalize:
+        features = normalizeFeatures(features)
 
     return features
 
@@ -46,15 +54,3 @@ def printPerformance(regressor, features, targets):
     print("Error : {}".format(error))
     print("Score : {}".format(regressor.score(features, targets)))
     return error
-
-"""
-# Normalize the features
-def prepareFeatures(fileName):
-    features = pd.read_csv(fileName)
-    features = labelEncode(features)
-    normalized_age = normalize(features[:, [4]], axis=0)
-    normalized_bmi_children = normalize(features[:, [6,7]], axis=0)
-    features = np.concatenate((features[:,[0,1,2,3]], normalized_age, features[:,[5]], normalized_bmi_children, features[:, [8]]), axis=1)
-    #features = normalize(features)
-    return features
-"""
