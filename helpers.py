@@ -5,9 +5,6 @@ from sklearn.metrics import mean_squared_error as mse
 import numpy as np
 import pandas as pd
 
-DIVIDE_TARGET_BY = 1000
-
-
 def labelEncode(data):
     le = LabelEncoder()
     data[data.columns[1]] = le.fit_transform(data.iloc[:, 1])
@@ -33,24 +30,24 @@ def prepareFeatures(fileName, normalize):
 
     return features
 
-def prepareTargets(fileName):
+def prepareTargets(fileName, divisor):
     targets = pd.read_csv(fileName)
     targets = targets.values
     targets = targets.flatten()
-    targets = targets / DIVIDE_TARGET_BY
+    targets = targets / divisor
 
     return targets
 
-def createSubmission(regressor, test_features, submissionFile):
+def createSubmission(regressor, test_features, submissionFile, divisor):
     with open(submissionFile, 'w') as outFile:
         predictions = regressor.predict(test_features)
         outFile.write("ID,predicted\n")
         for i in range(len(predictions)):
-            outFile.write(str(i) + ',' + str(predictions[i] * DIVIDE_TARGET_BY) + "\n")
+            outFile.write(str(i) + ',' + str(predictions[i] * divisor) + "\n")
 
 
-def printPerformance(regressor, features, targets):
-    error = mse(targets, regressor.predict(features)) * (DIVIDE_TARGET_BY ** 2)
+def printPerformance(regressor, features, targets, divisor):
+    error = mse(targets, regressor.predict(features)) * (divisor ** 2)
     print("Error : {}".format(error))
     print("Score : {}".format(regressor.score(features, targets)))
     return error

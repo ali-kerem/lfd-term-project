@@ -4,12 +4,14 @@ from copy import deepcopy
 import random as r
 import helpers
 
+DIVIDE_TARGET_BY = 1000
+
 if __name__ == "__main__":
     train_features = helpers.prepareFeatures("train_features.csv", normalize=True)
-    train_targets = helpers.prepareTargets("train_targets.csv")
+    train_targets = helpers.prepareTargets("train_targets.csv", divisor=DIVIDE_TARGET_BY)
 
     test_features = helpers.prepareFeatures("test_features.csv", normalize=True)
-    test_targets = helpers.prepareTargets("test_targets.csv")
+    test_targets = helpers.prepareTargets("test_targets.csv", divisor=DIVIDE_TARGET_BY)
 
     r.seed(1)
     kf = KFold(n_splits=5, shuffle=True)
@@ -27,10 +29,10 @@ if __name__ == "__main__":
 
         print("{}. Fold :".format(i))
         print("Training :")
-        helpers.printPerformance(regressor, features=x_train, targets=y_train)
+        helpers.printPerformance(regressor, features=x_train, targets=y_train, divisor=DIVIDE_TARGET_BY)
         print()
         print("Test :")
-        test_error = helpers.printPerformance(regressor, features=x_test, targets=y_test)
+        test_error = helpers.printPerformance(regressor, features=x_test, targets=y_test, divisor=DIVIDE_TARGET_BY)
         print("------------------------------------------------")
 
         if test_error < best_regressor_error:
@@ -40,5 +42,5 @@ if __name__ == "__main__":
         i += 1
 
     print("Performance on test data :")
-    helpers.printPerformance(best_regressor, features=test_features, targets=test_targets)
-    helpers.createSubmission(best_regressor, test_features=test_features, submissionFile="submission.csv")
+    helpers.printPerformance(best_regressor, features=test_features, targets=test_targets, divisor=DIVIDE_TARGET_BY)
+    helpers.createSubmission(best_regressor, test_features=test_features, submissionFile="submission.csv", divisor=DIVIDE_TARGET_BY)
