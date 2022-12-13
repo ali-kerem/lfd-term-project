@@ -1,8 +1,9 @@
-from sklearn.linear_model import LinearRegression
-from sklearn.model_selection import KFold
-from copy import deepcopy
-import random as r
 import helpers
+import random as r
+from numpy import mean
+from sklearn.linear_model import LinearRegression, Ridge
+from xgboost import XGBRegressor, XGBRFRegressor
+from sklearn.ensemble import GradientBoostingRegressor, AdaBoostRegressor, RandomForestRegressor
 
 DIVIDE_TARGET_BY = 1000
 
@@ -14,33 +15,39 @@ if __name__ == "__main__":
     test_targets = helpers.prepareTargets("test_targets.csv", divisor=DIVIDE_TARGET_BY)
 
     r.seed(1)
-    kf = KFold(n_splits=5, shuffle=True)
-    best_regressor = None
-    best_regressor_error = 9999999999
-    regressor = LinearRegression() # For loop
-    i = 1
 
-    for train, test in kf.split(train_features):
-        x_train, x_test = train_features[train], train_features[test]
+    models = []
+    avg_errors = []
 
-        y_train, y_test = train_targets[train], train_targets[test]
+    # Add models
+    models.append(LinearRegression())
+    models.append(Ridge())
+    models.append(XGBRFRegressor())
+    models.append(AdaBoostRegressor())
+    models.append(XGBRegressor(n_estimators=100,max_depth=2,min_child_weight=1,subsample=1,colsample_bytree=1, learning_rate=0.1))
+    models.append(GradientBoostingRegressor(max_depth=2))
+    models.append(RandomForestRegressor(max_depth=3, n_estimators=500))
 
-        regressor.fit(x_train, y_train)
 
-        print("{}. Fold :".format(i))
-        print("Training :")
-        helpers.printPerformance(regressor, features=x_train, targets=y_train, divisor=DIVIDE_TARGET_BY)
-        print()
-        print("Test :")
-        test_error = helpers.printPerformance(regressor, features=x_test, targets=y_test, divisor=DIVIDE_TARGET_BY)
-        print("------------------------------------------------")
+    # Apply 5-fold CV on models
+    for model in models:
+        errors = helpers.CV(features=train_features, targets=train_targets, model=model, n_splits=5, divisor=1000)
+        avg_errors.append(mean(errors))
 
-        if test_error < best_regressor_error:
-            best_regressor = deepcopy(regressor) # If we don't deepcopy, best_regressor gets updated everytime regressor is updated
-            best_regressor_error = test_error
+    # Sort by average error in ascending order
+    models = [model for _, model in sorted(zip(avg_errors, models))]
+    avg_errors.sort()
 
-        i += 1
+    # Print errors
+    print("   {0:32} Average CV Error".format('Model'))
+    for i in range(len(models)):
+        print("{0}. {1:30} : {2}".format(i + 1, models[i].__class__.__name__, avg_errors[i]))
 
-    print("Performance on test data :")
-    helpers.printPerformance(best_regressor, features=test_features, targets=test_targets, divisor=DIVIDE_TARGET_BY)
-    helpers.createSubmission(best_regressor, test_features=test_features, submissionFile="submission.csv", divisor=DIVIDE_TARGET_BY)
+    # Pick model with lowest average error
+    final_model = models[0]
+    final_model.fit(train_features, train_targets)
+
+    print("\nPerformance on test data :")
+    helpers.printPerformance(model=final_model, features=test_features, targets=test_targets, divisor=DIVIDE_TARGET_BY)
+
+    #helpers.createSubmission(model=final_model, test_features=test_features, submissionFile="newsub.csv", divisor=DIVIDE_TARGET_BY)
