@@ -2,17 +2,15 @@ import helpers
 import random as r
 from numpy import mean
 from sklearn.linear_model import LinearRegression, Ridge
-from xgboost import XGBRegressor, XGBRFRegressor
 from sklearn.ensemble import GradientBoostingRegressor, AdaBoostRegressor, RandomForestRegressor
-
-DIVIDE_TARGET_BY = 1000
+from xgboost import XGBRegressor, XGBRFRegressor
 
 if __name__ == "__main__":
-    train_features = helpers.prepareFeatures("train_features.csv", normalize=True)
-    train_targets = helpers.prepareTargets("train_targets.csv", divisor=DIVIDE_TARGET_BY)
+    train_features = helpers.prepareFeatures("train_features.csv", normalize=True, ohe_children=False, ohe_region=True)
+    train_targets = helpers.prepareTargets("train_targets.csv")
 
-    test_features = helpers.prepareFeatures("test_features.csv", normalize=True)
-    test_targets = helpers.prepareTargets("test_targets.csv", divisor=DIVIDE_TARGET_BY)
+    test_features = helpers.prepareFeatures("test_features.csv", normalize=True, ohe_children=False, ohe_region=True)
+    test_targets = helpers.prepareTargets("test_targets.csv")
 
     r.seed(1)
 
@@ -31,7 +29,7 @@ if __name__ == "__main__":
 
     # Apply 5-fold CV on models
     for model in models:
-        errors = helpers.CV(features=train_features, targets=train_targets, model=model, n_splits=5, divisor=1000)
+        errors = helpers.CV(features=train_features, targets=train_targets, model=model, n_splits=5)
         avg_errors.append(mean(errors))
 
     # Sort by average error in ascending order
@@ -48,6 +46,6 @@ if __name__ == "__main__":
     final_model.fit(train_features, train_targets)
 
     print("\nPerformance on test data :")
-    helpers.printPerformance(model=final_model, features=test_features, targets=test_targets, divisor=DIVIDE_TARGET_BY)
+    helpers.printPerformance(model=final_model, features=test_features, targets=test_targets)
 
-    #helpers.createSubmission(model=final_model, test_features=test_features, submissionFile="newsub.csv", divisor=DIVIDE_TARGET_BY)
+    helpers.createSubmission(model=final_model, test_features=test_features, submissionFile="newsub.csv")

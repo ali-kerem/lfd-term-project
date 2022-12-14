@@ -1,49 +1,60 @@
-import numpy as np
 import pandas as pd
 from sklearn.preprocessing import LabelEncoder
-from sklearn.compose import ColumnTransformer
 from sklearn.preprocessing import OneHotEncoder
 from sklearn.metrics import mean_squared_error as mse
 from sklearn.model_selection import KFold
 
-def labelEncode(data):
+def labelEncode(features, ohe_children, ohe_region):
     le = LabelEncoder()
-    data[data.columns[1]] = le.fit_transform(data.iloc[:, 1])
-    data[data.columns[4]] = le.fit_transform(data.iloc[:, 4])
+    features['sex'] = le.fit_transform(features['sex'])
+    features['smoker'] = le.fit_transform(features['smoker'])
 
-    ct = ColumnTransformer(transformers=[('encoder', OneHotEncoder(), [5])], remainder='passthrough')
-    data = np.array(ct.fit_transform(data))
+    if ohe_children:
+        ohe = OneHotEncoder()
+        children_ohe = pd.DataFrame(ohe.fit_transform(features[['children']]).toarray())
+        children_ohe.columns = ohe.get_feature_names_out(['children'])
+        features = features.join(children_ohe)
+        features.drop('children', axis=1, inplace=True)
 
-    return data
+    if ohe_region:
+        ohe = OneHotEncoder()
+        region_ohe = pd.DataFrame(ohe.fit_transform(features[['region']]).toarray())
+        region_ohe.columns = ohe.get_feature_names_out(['region'])
+        features = features.join(region_ohe)
+        features.drop('region', axis=1, inplace=True)
 
+    else:
+        features['region'] = le.fit_transform(features['region'])
 
-def normalizeFeatures(features):
-    features[:,4] = (features[:,4] - features[:,4].mean()) / features[:,4].std() # Normalize age
-    features[:,6] = (features[:,6] - features[:,6].mean()) / features[:,6].std() # Normalize bmi
-    features[:,7] = (features[:,7] - features[:,7].mean()) / features[:,7].std() # Normalize number of children
     return features
 
 
-def prepareFeatures(fileName, normalize):
+def normalizeFeatures(features):
+    features['age'] = (features['age']-features['age'].mean())/features['age'].std() # Normalize age
+    features['bmi'] = (features['bmi']-features['bmi'].mean())/features['bmi'].std() # Normalize bmi
+
+    return features
+
+
+def prepareFeatures(fileName, normalize, ohe_children, ohe_region):
     features = pd.read_csv(fileName)
-    features = labelEncode(features)
+    features = labelEncode(features, ohe_children, ohe_region)
 
     if normalize:
         features = normalizeFeatures(features)
 
-    return features
+    return features.to_numpy()
 
 
-def prepareTargets(fileName, divisor):
+def prepareTargets(fileName):
     targets = pd.read_csv(fileName)
     targets = targets.values
     targets = targets.flatten()
-    targets = targets / divisor
 
     return targets
 
 
-def CV(features, targets, model, n_splits, divisor):
+def CV(features, targets, model, n_splits):
     errors = []
     kf = KFold(n_splits=n_splits, shuffle=True)
 
@@ -53,22 +64,22 @@ def CV(features, targets, model, n_splits, divisor):
 
         model.fit(x_train, y_train)
 
-        error = mse(y_test, model.predict(x_test)) * (divisor ** 2)
+        error = mse(y_test, model.predict(x_test))
         errors.append(error)
 
     return errors
 
 
-def createSubmission(model, test_features, submissionFile, divisor):
+def createSubmission(model, test_features, submissionFile):
     with open(submissionFile, 'w') as outFile:
         predictions = model.predict(test_features)
         outFile.write("ID,predicted\n")
         for i in range(len(predictions)):
-            outFile.write(str(i) + ',' + str(predictions[i] * divisor) + "\n")
+            outFile.write(str(i) + ',' + str(predictions[i]) + "\n")
 
 
-def printPerformance(model, features, targets, divisor):
-    error = mse(targets, model.predict(features)) * (divisor ** 2)
+def printPerformance(model, features, targets):
+    error = mse(targets, model.predict(features))
     print("Error : {}".format(error))
     print("Score : {}".format(model.score(features, targets)))
     return error
