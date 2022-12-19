@@ -6,24 +6,24 @@ from sklearn.model_selection import KFold
 
 def labelEncode(features, ohe_children, ohe_region):
     le = LabelEncoder()
-    features['sex'] = le.fit_transform(features['sex'])
-    features['smoker'] = le.fit_transform(features['smoker'])
+    features['sex'] = le.fit_transform(features['sex']) # Encode sex
+    features['smoker'] = le.fit_transform(features['smoker']) # Encode smoker
 
-    if ohe_children:
+    if ohe_children:  # Encode children and add to right, drop the children column
         ohe = OneHotEncoder()
         children_ohe = pd.DataFrame(ohe.fit_transform(features[['children']]).toarray())
         children_ohe.columns = ohe.get_feature_names_out(['children'])
         features = features.join(children_ohe)
         features.drop('children', axis=1, inplace=True)
 
-    if ohe_region:
+    if ohe_region:  # Encode children and add to right, drop the children column
         ohe = OneHotEncoder()
         region_ohe = pd.DataFrame(ohe.fit_transform(features[['region']]).toarray())
         region_ohe.columns = ohe.get_feature_names_out(['region'])
         features = features.join(region_ohe)
         features.drop('region', axis=1, inplace=True)
 
-    else:
+    else:  # Incremental encoding
         features['region'] = le.fit_transform(features['region'])
 
     return features
@@ -67,7 +67,7 @@ def CV(features, targets, model, n_splits=5):
         error = mse(y_test, model.predict(x_test))
         errors.append(error)
 
-    return errors
+    return errors # Return error for each fold
 
 
 def createSubmission(model, test_features, submissionFile):
@@ -76,10 +76,3 @@ def createSubmission(model, test_features, submissionFile):
         outFile.write("ID,predicted\n")
         for i in range(len(predictions)):
             outFile.write(str(i) + ',' + str(predictions[i]) + "\n")
-
-
-def printPerformance(model, features, targets):
-    error = mse(targets, model.predict(features))
-    print("Error : {}".format(error))
-    print("Score : {}".format(model.score(features, targets)))
-    return error
