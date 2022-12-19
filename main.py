@@ -1,16 +1,16 @@
 import helpers
 import random as r
 from numpy import mean
-from sklearn.linear_model import LinearRegression, Ridge
+from sklearn.linear_model import LinearRegression, Ridge, LassoLars
 from sklearn.ensemble import GradientBoostingRegressor, AdaBoostRegressor, RandomForestRegressor
 from xgboost import XGBRegressor, XGBRFRegressor
+from sklearn.neighbors import KNeighborsRegressor
 
 if __name__ == "__main__":
     train_features = helpers.prepareFeatures("train_features.csv", normalize=True, ohe_children=False, ohe_region=True)
     train_targets = helpers.prepareTargets("train_targets.csv")
 
     test_features = helpers.prepareFeatures("test_features.csv", normalize=True, ohe_children=False, ohe_region=True)
-    test_targets = helpers.prepareTargets("test_targets.csv")
 
     r.seed(1)
 
@@ -20,11 +20,13 @@ if __name__ == "__main__":
     # Add models
     models.append(LinearRegression())
     models.append(Ridge())
-    models.append(XGBRFRegressor())
+    models.append(LassoLars())
+    models.append(KNeighborsRegressor())
+    models.append(RandomForestRegressor())
     models.append(AdaBoostRegressor())
-    models.append(XGBRegressor(n_estimators=100,max_depth=2,min_child_weight=1,subsample=1,colsample_bytree=1, learning_rate=0.1))
-    models.append(GradientBoostingRegressor(max_depth=2))
-    models.append(RandomForestRegressor(max_depth=3, n_estimators=500))
+    models.append(XGBRegressor())
+    models.append(GradientBoostingRegressor())
+    models.append(XGBRFRegressor())
 
 
     # Apply 5-fold CV on models
@@ -44,8 +46,5 @@ if __name__ == "__main__":
     # Pick model with lowest average error
     final_model = models[0]
     final_model.fit(train_features, train_targets)
-
-    print("\nPerformance on test data :")
-    helpers.printPerformance(model=final_model, features=test_features, targets=test_targets)
 
     helpers.createSubmission(model=final_model, test_features=test_features, submissionFile="newsub.csv")

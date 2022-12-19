@@ -36,7 +36,7 @@ def normalizeFeatures(features):
     return features
 
 
-def prepareFeatures(fileName, normalize, ohe_children, ohe_region):
+def prepareFeatures(fileName, normalize=False, ohe_children=False, ohe_region=False):
     features = pd.read_csv(fileName)
     features = labelEncode(features, ohe_children, ohe_region)
 
@@ -54,7 +54,7 @@ def prepareTargets(fileName):
     return targets
 
 
-def CV(features, targets, model, n_splits):
+def CV(features, targets, model, n_splits=5):
     errors = []
     kf = KFold(n_splits=n_splits, shuffle=True)
 
