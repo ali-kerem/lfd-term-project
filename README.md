@@ -1,2 +1,2 @@
-# BLG 454E - Term Project
-## Term Project of Learning from Data Course (ITU 2022 Fall)
+# Learning from Data - Term Project
+Term Project of BLG 454E - Learning from Data Course (ITU: 2022 Fall)
