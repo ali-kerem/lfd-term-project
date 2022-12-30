@@ -1,3 +1,4 @@
+import os
 import pandas as pd
 from sklearn.preprocessing import LabelEncoder
 from sklearn.preprocessing import OneHotEncoder
@@ -71,7 +72,9 @@ def CV(features, targets, model, n_splits=5):
 
 
 def createSubmission(model, test_features, submissionFile):
-    with open(submissionFile, 'w') as outFile:
+    home_dir = os.getcwd()
+    file_path = os.path.join(home_dir, "submissions/" + submissionFile)
+    with open(file_path, 'w') as outFile:
         predictions = model.predict(test_features)
         outFile.write("ID,predicted\n")
         for i in range(len(predictions)):
