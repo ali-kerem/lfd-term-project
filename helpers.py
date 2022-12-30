@@ -1,4 +1,3 @@
-import os
 import pandas as pd
 from sklearn.preprocessing import LabelEncoder
 from sklearn.preprocessing import OneHotEncoder
@@ -37,8 +36,9 @@ def normalizeFeatures(features):
     return features
 
 
-def prepareFeatures(fileName, normalize=False, ohe_children=False, ohe_region=False):
-    features = pd.read_csv(fileName)
+def prepareFeatures(file_name, normalize=False, ohe_children=False, ohe_region=False):
+    file_path = "./data/" + file_name
+    features = pd.read_csv(file_path)
     features = labelEncode(features, ohe_children, ohe_region)
 
     if normalize:
@@ -47,8 +47,9 @@ def prepareFeatures(fileName, normalize=False, ohe_children=False, ohe_region=Fa
     return features.to_numpy()
 
 
-def prepareTargets(fileName):
-    targets = pd.read_csv(fileName)
+def prepareTargets(file_name):
+    file_path = "./data/" + file_name
+    targets = pd.read_csv(file_path)
     targets = targets.values
     targets = targets.flatten()
 
@@ -71,9 +72,8 @@ def CV(features, targets, model, n_splits=5):
     return errors # Return error for each fold
 
 
-def createSubmission(model, test_features, submissionFile):
-    home_dir = os.getcwd()
-    file_path = os.path.join(home_dir, "submissions/" + submissionFile)
+def createSubmission(model, test_features, submission_file):
+    file_path = "./submissions/" + submission_file
     with open(file_path, 'w') as outFile:
         predictions = model.predict(test_features)
         outFile.write("ID,predicted\n")
